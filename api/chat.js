@@ -18,7 +18,7 @@ FACTS
 - Building: three floors plus a terrace, with an elevator. Within walking distance of UPES Kandoli campus (per the brochure). Near the gurudwara, Kandoli, Pondha.
 - Single sharing: Rs 15,000 per month (Rs 1,80,000 per year). Furnished room for one student. Includes electricity, Wi-Fi, cleaning, RO drinking water, 24x7 security and the common kitchen.
 - Double sharing: Rs 20,000 per month for the room, which is Rs 10,000 per student (Rs 2,40,000 per year for the room). Same inclusions as single sharing.
-- 2BHK flat for 4 students: Rs 50,000 per month (Rs 6,00,000 per year), which is Rs 12,500 per student per month if split evenly. Has its own living area and kitchen. Includes electricity, Wi-Fi, water, RO drinking water and 24x7 security. Cleaning is not listed for the flat.
+- 2BHK flat for 4 students: Rs 50,000 per month (Rs 6,00,000 per year), which is Rs 12,500 per student per month if split evenly. Has its own living area and kitchen. Includes cleaning, electricity, Wi-Fi, water, RO drinking water and 24x7 security.
 - Annual figures are the monthly rate times 12.
 - Food: optional tiffin service at Rs 50,000 per year per student. It is not part of the rent.
 - No timing restrictions (no curfew). 24x7 security and CCTV cameras.
@@ -42,7 +42,7 @@ function knownAnswer(question) {
       : 'Food is not included in the rent. Optional tiffin service costs ₹50,000 per student per year. Sharing rooms also have a common kitchen.';
   }
   if (has('cleaning') && has('2bhk', '2 bhk', 'flat')) {
-    return 'Cleaning is not listed as an inclusion for the 2BHK flat. Please confirm this with the front desk at 99929 15868.';
+    return 'Yes. Cleaning is included in the 2BHK flat rent, along with electricity, Wi-Fi, water, RO drinking water and 24×7 security.';
   }
   if ((has('single') && has('double')) || has('room type', 'room types', 'types of room', 'types of rooms', 'which rooms', 'what rooms', 'all rooms', 'room options')) {
     return hindi
