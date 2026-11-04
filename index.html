@@ -163,10 +163,41 @@ footer{background:var(--y);color:var(--k);min-height:90svh;display:flex;flex-dir
 .f-num span{display:inline-block}
 .f-meta{display:flex;justify-content:space-between;gap:16px;margin-top:26px;font-size:.9375rem}
 
+/* chat */
+.chat-fab{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:60;background:var(--y);color:var(--k);border:0;border-radius:0;padding:15px 24px;font:800 1.2rem var(--d);font-stretch:62%;text-transform:uppercase;transition:transform .2s}
+.chat-fab:hover{transform:translateY(-3px)}.chat-fab:active{transform:scale(.97)}
+.chat-fab[aria-expanded=true]{display:none}
+.chat{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:61;width:min(410px,100% - 32px);height:min(650px,calc(100svh - 32px));background:var(--k);color:#fff;display:flex;flex-direction:column;animation:chatin .25s ease}
+.chat[hidden]{display:none}
+@keyframes chatin{from{opacity:0;transform:translateY(16px)}}
+.chat-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:var(--y);color:var(--k)}
+.chat-h strong{font:800 1.35rem var(--d);font-stretch:62%;text-transform:uppercase;line-height:1}
+.chat-x{background:var(--k);color:#fff;border:0;border-radius:0;padding:8px 14px;font:500 .95rem var(--t)}
+.chat-log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.msg{max-width:88%;padding:10px 14px;font-size:1.0625rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.bot{background:#2b2b2a;align-self:flex-start}
+.msg.me{background:var(--y);color:var(--k);align-self:flex-end}
+.msg a{color:var(--y);font-weight:500}
+.dots{display:flex;gap:5px;padding:14px 16px}
+.dots i{width:8px;height:8px;background:#fff;opacity:.35;animation:dot 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes dot{50%{opacity:1;transform:translateY(-3px)}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px}
+.chips[hidden]{display:none}
+.chips button{background:#2b2b2a;color:#fff;border:0;border-radius:0;padding:9px 14px;font:500 .95rem var(--t);transition:transform .15s}
+.chips button:hover{background:var(--y);color:var(--k)}.chips button:active{transform:scale(.97)}
+.chat-f{display:flex;gap:8px;padding:12px 16px;background:#1d1d1c}
+.chat-f input{flex:1;min-width:0;padding:13px 14px;border:0;border-radius:0;background:#2b2b2a;color:#fff;font:1rem var(--t)}
+.chat-f input::placeholder{color:#9a9a96}
+.chat-f button{background:var(--y);color:var(--k);border:0;border-radius:0;padding:0 20px;font:500 1rem var(--t)}
+.chat-f button:disabled{opacity:.5}
+.chat-note{padding:0 16px 14px;background:#1d1d1c;font-size:.8125rem;line-height:1.4;color:#b5b5b0}
+.chat-note a{color:#fff}
+
 /* motion */
 .js [data-r]{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;transition-delay:calc(var(--dl,0) * 80ms)}
 .js [data-r].in{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.mq div{animation:none}.js [data-r]{opacity:1;transform:none;transition:none}.ph{transition:none}.btn,.opt span,.chip,.masonry img,.lb-main img{transition:none;animation:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.mq div{animation:none}.js [data-r]{opacity:1;transform:none;transition:none}.ph{transition:none}.btn,.opt span,.chip,.masonry img,.lb-main img,.chat,.chat-fab,.dots i,.chips button{transition:none;animation:none}}
 
 @media (max-width:980px){.masonry{columns:2}.calc{grid-template-columns:1fr}.hero-l{grid-column:1/13}.hero-r{grid-column:3/13;margin-top:40px}.faq-l,.faq-r{grid-column:1/13}.faq-r{margin-top:32px}}
 @media (max-width:760px){
@@ -188,6 +219,8 @@ footer{background:var(--y);color:var(--k);min-height:90svh;display:flex;flex-dir
  .visit{min-height:0;padding-bottom:24px}.visit>img{position:relative;inset:auto;height:55svh}
  .card{position:relative;top:auto;right:auto;margin:-64px 16px 0;width:auto}
  .f-top{flex-direction:column}.f-num{font-size:19vw}.f-meta{flex-direction:column;gap:6px}
+ .chat{right:0;left:0;bottom:0;width:auto;height:min(82svh,680px);padding-bottom:env(safe-area-inset-bottom)}
+ .chat-fab{padding:13px 20px;font-size:1.1rem}
 }
 </style>
 <script>document.documentElement.classList.add('js')</script>
@@ -359,6 +392,15 @@ footer{background:var(--y);color:var(--k);min-height:90svh;display:flex;flex-dir
   <div class="f-meta"><span>White House Residency</span><span>Photographs: White House Residency</span><span>Dehradun, 2026</span></div>
 </footer>
 
+<button class="chat-fab" id="cf" type="button" aria-expanded="false" aria-controls="chat">Ask us</button>
+<section class="chat" id="chat" role="dialog" aria-label="Chat with White House Residency" hidden>
+  <div class="chat-h"><strong>Ask White House</strong><button class="chat-x" id="cx" type="button">Close</button></div>
+  <div class="chat-log" id="clog" role="log" aria-live="polite"></div>
+  <div class="chips" id="cchips"><button type="button">What are the rent and prices?</button><button type="button">What room types do you have?</button><button type="button">Is food available?</button><button type="button">Where is it and how far is the campus?</button><button type="button">How do I book a visit?</button></div>
+  <form class="chat-f" id="cform" autocomplete="off"><input id="cin" type="text" maxlength="300" placeholder="Type your question" aria-label="Your question"><button id="csend" type="submit">Send</button></form>
+  <p class="chat-note">Answers are written by AI and can be wrong, so confirm prices with the front desk. Please do not share personal details here. Prefer a person? <a href="tel:+919992915868">Call</a> or <a href="https://wa.me/919992915868" target="_blank" rel="noopener">WhatsApp</a> 99929 15868.</p>
+</section>
+
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
   <div class="lb-top"><span id="lbc" aria-live="polite"></span><button class="lb-x" id="lbx" type="button">Close</button></div>
   <div class="lb-main"><button class="lb-n pv" id="lbp" type="button" aria-label="Previous photo"></button><figure><img id="lbi" alt=""><figcaption id="lbcap"></figcaption></figure><button class="lb-n nx" id="lbn" type="button" aria-label="Next photo"></button></div>
@@ -412,6 +454,47 @@ var IMGS={"building": "images/building.jpg", "terrace": "images/terrace.jpg", "b
     $('#o-n').textContent=r.t+' Rates are as supplied by the residency. Confirm them when you book.';
     $('#o-wa').href='https://wa.me/919992915868?text='+encodeURIComponent('Hi, I would like to know about the '+r.n+(food?' with tiffin':'')+' at White House Residency.')}
   f.addEventListener('change',calc);f.addEventListener('submit',function(e){e.preventDefault()});calc();
+})();
+</script>
+<script>
+(function(){
+  var fab=document.getElementById('cf'),box=document.getElementById('chat'),log=document.getElementById('clog'),form=document.getElementById('cform'),inp=document.getElementById('cin'),send=document.getElementById('csend'),chips=document.getElementById('cchips');
+  var hist=[],busy=false,WA='https://wa.me/919992915868';
+  function add(role,text,link){var d=document.createElement('div');d.className='msg '+(role==='user'?'me':'bot');d.textContent=text;if(link){d.appendChild(document.createElement('br'));var a=document.createElement('a');a.href=WA;a.target='_blank';a.rel='noopener';a.textContent='Message us on WhatsApp';d.appendChild(a)}log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+  function typing(){var d=document.createElement('div');d.className='msg bot dots';d.setAttribute('aria-label','Typing');d.innerHTML='<i></i><i></i><i></i>';log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+  function openChat(){box.hidden=false;fab.setAttribute('aria-expanded','true');if(!log.children.length)add('bot','Hi! I can answer questions about the rooms, rent, food and location. What would you like to know?');setTimeout(function(){inp.focus()},50)}
+  function closeChat(){box.hidden=true;fab.setAttribute('aria-expanded','false');fab.focus()}
+  fab.addEventListener('click',openChat);document.getElementById('cx').addEventListener('click',closeChat);
+  addEventListener('keydown',function(e){if(e.key==='Escape'&&!box.hidden&&document.getElementById('lb').hidden)closeChat()});
+
+  /* built-in answers: used whenever the AI is busy, offline or not set up */
+  function local(q){var s=q.toLowerCase();function has(){for(var i=0;i<arguments.length;i++)if(s.indexOf(arguments[i])>-1)return true;return false}
+    var call='Call or WhatsApp 99929 15868. The front desk opens at 9 am.';
+    if(/^(hi|hello|hey|namaste)\b/.test(s)&&s.length<16)return 'Hi! Ask me about the rooms, rent, food, facilities or how to visit.';
+    if(has('single'))return 'Single sharing is ₹15,000 a month (₹1,80,000 for the year). It is a furnished room to yourself. Electricity, Wi-Fi, cleaning, RO water, 24×7 security and the common kitchen are included.';
+    if(has('double','share','sharing'))return 'Double sharing is ₹10,000 per student a month. The room costs ₹20,000 a month, or ₹2,40,000 for the year. The inclusions are the same as a single room.';
+    if(has('2bhk','flat','four students','4 students'))return 'The 2BHK flat is for four students at ₹50,000 a month (₹6,00,000 for the year), which is ₹12,500 each if you split it evenly. It has its own living area and kitchen. Electricity, Wi-Fi, water, RO water and 24×7 security are included.';
+    if(has('food','tiffin','mess','meal','khana','lunch','dinner','breakfast'))return 'Food is optional. The tiffin service costs ₹50,000 a year per student and is not part of the rent. Sharing rooms also have a common kitchen.';
+    if(has('room type','types','rooms','options','which room','what room'))return 'There are three options: single sharing at ₹15,000 a month, double sharing at ₹10,000 per student a month, and a 2BHK flat for four students at ₹50,000 a month.';
+    if(has('rent','price','cost','fee','charge','kiraya','kitna','how much','rate','budget'))return 'Single sharing is ₹15,000 a month. Double sharing is ₹10,000 per student (₹20,000 for the room). A 2BHK flat for four students is ₹50,000 a month. Annual rent is the monthly rate for 12 months. Tiffin is optional at ₹50,000 a year.';
+    if(has('curfew','timing','late','gate','time restriction'))return 'There are no timing restrictions. 24×7 security and CCTV cover the building.';
+    if(has('security','cctv','safe','guard'))return 'The building has 24×7 security and CCTV cameras.';
+    if(has('wifi','wi-fi','internet'))return 'Wi-Fi is included in the rent for every room type.';
+    if(has('lift','elevator','terrace','roof','foosball','kitchen','facilit','amenit','include'))return 'There is an elevator, a terrace, a foosball table in the recreation area, balconies and a reception. Sharing rooms have a common kitchen. Electricity, Wi-Fi, RO drinking water and 24×7 security come with every option.';
+    if(has('where','location','address','distance','campus','upes','kandoli','far','walk','kahan'))return 'It is near UPES Kandoli campus, near the gurudwara, Kandoli, Pondha, Dehradun 248007, within walking distance of the campus.';
+    if(has('book','visit','call','contact','number','whatsapp','phone','available','vacan','reserve','seat'))return 'To book or visit, '+call.charAt(0).toLowerCase()+call.slice(1);
+    return 'I am not sure about that one. The front desk can tell you. '+call}
+  function wantsLink(a,q){return /book|visit|available|reserve|99929|front desk|whatsapp/i.test(a+' '+q)}
+
+  async function ask(q){if(busy||!q.trim())return;busy=true;send.disabled=true;chips.hidden=true;
+    add('user',q);hist.push({role:'user',content:q});var d=typing(),ans=null;
+    try{var ctl=new AbortController(),to=setTimeout(function(){ctl.abort()},14000);
+      var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist.slice(-8)}),signal:ctl.signal});clearTimeout(to);
+      if(r.ok){var j=await r.json();if(j&&typeof j.reply==='string'&&j.reply.trim())ans=j.reply.trim()}}catch(e){}
+    if(!ans)ans=local(q);
+    setTimeout(function(){d.remove();add('bot',ans,wantsLink(ans,q));hist.push({role:'assistant',content:ans});busy=false;send.disabled=false;inp.focus()},350)}
+  form.addEventListener('submit',function(e){e.preventDefault();var q=inp.value;inp.value='';ask(q)});
+  [].slice.call(chips.querySelectorAll('button')).forEach(function(b){b.addEventListener('click',function(){ask(b.textContent)})});
 })();
 </script>
 </body>
