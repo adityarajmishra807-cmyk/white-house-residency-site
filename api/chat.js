@@ -82,7 +82,7 @@ module.exports = async (req, res) => {
 
   const msgs = incoming.slice(-8).map((m) => ({
     role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content.replace(/[\\u0000-\\u001f\\u007f-\\u009f]/g, ' ').slice(0, 500) }],
+    parts: [{ text: m.content.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ').slice(0, 500) }],
   })).filter((m) => m.parts[0].text.trim());
   while (msgs.length && msgs[0].role !== 'user') msgs.shift();
   if (!msgs.length || msgs[msgs.length - 1].role !== 'user') {
