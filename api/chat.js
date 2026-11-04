@@ -2,7 +2,7 @@
 // Uses Google's free Gemini API. Set GEMINI_API_KEY in Vercel (Project > Settings > Environment Variables).
 // Optional: GEMINI_MODEL (defaults to a free Flash-Lite model alias).
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-lite-latest';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
 const SYSTEM = `You are the website assistant for White House Residency, a student residence near UPES Kandoli campus, Pondha, Dehradun, Uttarakhand 248007.
 
@@ -26,45 +26,79 @@ FACTS
 - Contact: 99929 15868 (call or WhatsApp). Front desk opens at 9 am.
 - NOT known (say you are not sure and refer to the front desk): security deposit, notice period, visitor rules, meal menu, laundry, exact walking distance or time, current availability.`;
 
-const hits = new Map(); // best-effort per-instance rate limit
+const hits = new Map(); // best-effort per-instance rate limit; not a global distributed limit
 function limited(ip) {
   const now = Date.now();
   const arr = (hits.get(ip) || []).filter((t) => now - t < 60000);
   arr.push(now);
   hits.set(ip, arr);
-  if (hits.size > 5000) hits.clear();
+
+  // Remove expired IP buckets rather than clearing every visitor's counter at once.
+  if (hits.size > 5000) {
+    for (const [address, timestamps] of hits) {
+      const active = timestamps.filter((t) => now - t < 60000);
+      if (active.length) hits.set(address, active);
+      else hits.delete(address);
+    }
+    // Bound memory if a large burst creates many one-off IP buckets.
+    while (hits.size > 5000) hits.delete(hits.keys().next().value);
+  }
   return arr.length > 50;
 }
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-RateLimit-Limit', '50');
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-  // same-site requests only
+  // Browser-originated requests must come from this site.
   const origin = req.headers.origin;
   if (origin) {
-    try { if (new URL(origin).host !== req.headers.host) return res.status(403).json({ error: 'forbidden' }); }
-    catch (e) { return res.status(403).json({ error: 'forbidden' }); }
+    try {
+      const parsedOrigin = new URL(origin);
+      if (parsedOrigin.protocol !== 'https:' || parsedOrigin.host !== req.headers.host) {
+        return res.status(403).json({ error: 'forbidden' });
+      }
+    } catch (e) {
+      return res.status(403).json({ error: 'forbidden' });
+    }
   }
 
   const key = process.env.GEMINI_API_KEY;
   if (!key) return res.status(503).json({ error: 'not configured' });
 
-  const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
-  if (limited(ip)) return res.status(429).json({ error: 'slow down' });
+  const incoming = req.body && req.body.messages;
+  if (!Array.isArray(incoming) || incoming.length < 1 || incoming.length > 20) {
+    return res.status(400).json({ error: 'bad request' });
+  }
+  if (incoming.some((m) => !m || typeof m !== 'object' || Array.isArray(m) ||
+      (m.role !== 'user' && m.role !== 'assistant') || typeof m.content !== 'string')) {
+    return res.status(400).json({ error: 'bad request' });
+  }
+  const totalChars = incoming.reduce((sum, m) => sum + m.content.length, 0);
+  if (totalChars > 8000 || incoming.some((m) => m.content.length > 2000)) {
+    return res.status(413).json({ error: 'message too large' });
+  }
 
-  let msgs = req.body && req.body.messages;
-  if (!Array.isArray(msgs) || !msgs.length) return res.status(400).json({ error: 'bad request' });
-  msgs = msgs.slice(-8).map((m) => ({
-    role: m && m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: String((m && m.content) || '').replace(/[\u0000-\u001f]/g, ' ').slice(0, 500) }],
+  const msgs = incoming.slice(-8).map((m) => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content.replace(/[\\u0000-\\u001f\\u007f-\\u009f]/g, ' ').slice(0, 500) }],
   })).filter((m) => m.parts[0].text.trim());
   while (msgs.length && msgs[0].role !== 'user') msgs.shift();
-  if (!msgs.length || msgs[msgs.length - 1].role !== 'user') return res.status(400).json({ error: 'bad request' });
+  if (!msgs.length || msgs[msgs.length - 1].role !== 'user') {
+    return res.status(400).json({ error: 'bad request' });
+  }
 
+  const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+  const ip = String(rawIp).split(',')[0].trim().slice(0, 64) || 'unknown';
+  if (limited(ip)) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).json({ error: 'slow down' });
+  }
+
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 8500);
   try {
-    const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), 12000);
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL)}:generateContent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
@@ -75,14 +109,18 @@ module.exports = async (req, res) => {
       }),
       signal: ctl.signal,
     });
-    clearTimeout(t);
+
+    if (r.status === 429) return res.status(429).json({ error: 'provider rate limit' });
     if (!r.ok) return res.status(502).json({ error: 'upstream ' + r.status });
+
     const j = await r.json();
-    const text = ((j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts) || [])
-      .map((p) => p.text || '').join('').trim();
-    if (!text) return res.status(502).json({ error: 'empty' });
-    return res.status(200).json({ reply: text.slice(0, 900) });
+    const parts = j && j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts;
+    const answer = Array.isArray(parts) ? parts.map((p) => typeof p.text === 'string' ? p.text : '').join('').trim() : '';
+    if (!answer) return res.status(502).json({ error: 'empty' });
+    return res.status(200).json({ reply: answer.slice(0, 900) });
   } catch (e) {
     return res.status(502).json({ error: 'upstream failed' });
+  } finally {
+    clearTimeout(timer);
   }
 };
