@@ -1,6 +1,6 @@
 // Vercel serverless function: POST /api/chat
 // Uses Google's free Gemini API. Set GEMINI_API_KEY in Vercel (Project > Settings > Environment Variables).
-// Optional: GEMINI_MODEL (defaults to a free Flash-Lite model alias).
+// Optional: GEMINI_MODEL (defaults to the stable Gemini 3.5 Flash-Lite model).
 
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
