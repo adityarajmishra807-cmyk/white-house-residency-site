@@ -50,16 +50,24 @@ function knownAnswer(question) {
       : 'There are three options: single sharing at ₹15,000 per month, double sharing at ₹10,000 per student per month, and a 2BHK flat for four students at ₹50,000 per month.';
   }
   if (has('2bhk', '2 bhk', 'flat', 'four students', '4 students')) {
-    return 'The 2BHK flat is for four students at ₹50,000 per month (₹6,00,000 per year), or ₹12,500 per student per month if split evenly. It has its own living area and kitchen. Electricity, Wi-Fi, water, RO drinking water and 24×7 security are included.';
+    return hindi
+      ? '2BHK flat 4 students ke liye ₹50,000 per month (₹6,00,000 per year) hai. Evenly split karne par ₹12,500 per student per month hoga. Ismein living area aur kitchen hai; electricity, Wi-Fi, water, RO drinking water aur 24×7 security included hain.'
+      : 'The 2BHK flat is for four students at ₹50,000 per month (₹6,00,000 per year), or ₹12,500 per student per month if split evenly. It has its own living area and kitchen. Electricity, Wi-Fi, water, RO drinking water and 24×7 security are included.';
   }
   if (has('double')) {
-    return 'Double sharing is ₹10,000 per student per month. The whole room costs ₹20,000 per month (₹2,40,000 per year). Cleaning, electricity, Wi-Fi, RO drinking water, 24×7 security and the common kitchen are included.';
+    return hindi
+      ? 'Double sharing ₹10,000 per student per month hai. Poore room ka rent ₹20,000 per month (₹2,40,000 per year) hai. Cleaning, electricity, Wi-Fi, RO drinking water, 24×7 security aur common kitchen included hain.'
+      : 'Double sharing is ₹10,000 per student per month. The whole room costs ₹20,000 per month (₹2,40,000 per year). Cleaning, electricity, Wi-Fi, RO drinking water, 24×7 security and the common kitchen are included.';
   }
   if (has('single')) {
-    return 'Single sharing is ₹15,000 per month (₹1,80,000 per year). It is a furnished room for one student. Electricity, Wi-Fi, cleaning, RO drinking water, 24×7 security and the common kitchen are included.';
+    return hindi
+      ? 'Single sharing ₹15,000 per month (₹1,80,000 per year) hai. Yeh ek student ke liye furnished room hai. Electricity, Wi-Fi, cleaning, RO drinking water, 24×7 security aur common kitchen included hain.'
+      : 'Single sharing is ₹15,000 per month (₹1,80,000 per year). It is a furnished room for one student. Electricity, Wi-Fi, cleaning, RO drinking water, 24×7 security and the common kitchen are included.';
   }
   if (has('rent', 'price', 'cost', 'fee', 'charge', 'kiraya', 'kitna', 'how much', 'rate', 'budget')) {
-    return 'Rent: single sharing ₹15,000/month; double sharing ₹10,000 per student/month (₹20,000 per room); 2BHK for four students ₹50,000/month. Tiffin is optional at ₹50,000 per student per year.';
+    return hindi
+      ? 'Rent: single sharing ₹15,000/month; double sharing ₹10,000 per student/month (₹20,000 per room); 4 students ke liye 2BHK ₹50,000/month. Tiffin optional hai, ₹50,000 per student per year.'
+      : 'Rent: single sharing ₹15,000/month; double sharing ₹10,000 per student/month (₹20,000 per room); 2BHK for four students ₹50,000/month. Tiffin is optional at ₹50,000 per student per year.';
   }
   return null;
 }
