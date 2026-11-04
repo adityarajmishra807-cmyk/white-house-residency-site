@@ -26,6 +26,44 @@ FACTS
 - Contact: 99929 15868 (call or WhatsApp). Front desk opens at 9 am.
 - NOT known (say you are not sure and refer to the front desk): security deposit, notice period, visitor rules, meal menu, laundry, exact walking distance or time, current availability.`;
 
+function knownAnswer(question) {
+  const s = String(question || '').toLowerCase().trim();
+  const has = (...words) => words.some((word) => s.includes(word));
+  const hindi = /[\u0900-\u097f]/.test(s) || /\b(kya|hai|hain|kitna|kitne|kahan|kaise|kiraya|khana|milega)\b/.test(s);
+
+  if (has('meal menu', 'food menu', 'tiffin menu', 'deposit', 'notice period', 'visitor', 'guest', 'parent', 'parents', 'laundry', 'washing', 'cleaning schedule', 'current availability', 'vacancy', 'vacancies', 'available now', 'room available', 'rooms available', 'beds available', 'availability', 'parking', 'pets', 'girls hostel', 'boys hostel', 'gender policy', 'exact distance', 'exactly how far', 'how far exactly', 'how many minutes', 'how many km', 'how many kilometers', 'check in', 'check-in', 'check out', 'checkout')) {
+    return hindi
+      ? 'Is detail ki confirmed information mere paas nahi hai. Please front desk se confirm karein: 99929 15868.'
+      : 'I do not have confirmed information about that. Please check with the front desk at 99929 15868.';
+  }
+  if (has('food', 'tiffin', 'mess', 'meal', 'khana', 'khane', 'खाना', 'खाने', 'भोजन', 'लंच', 'डिनर', 'breakfast', 'lunch', 'dinner', 'eating')) {
+    return hindi
+      ? 'Food rent mein included nahi hai. Optional tiffin service ₹50,000 per student per year hai. Sharing rooms mein common kitchen bhi hai.'
+      : 'Food is not included in the rent. Optional tiffin service costs ₹50,000 per student per year. Sharing rooms also have a common kitchen.';
+  }
+  if (has('cleaning') && has('2bhk', '2 bhk', 'flat')) {
+    return 'Cleaning is not listed as an inclusion for the 2BHK flat. Please confirm this with the front desk at 99929 15868.';
+  }
+  if ((has('single') && has('double')) || has('room type', 'room types', 'types of room', 'types of rooms', 'which rooms', 'what rooms', 'all rooms', 'room options')) {
+    return hindi
+      ? 'Teen options hain: single sharing ₹15,000 per month, double sharing ₹10,000 per student per month, aur 4 students ke liye 2BHK flat ₹50,000 per month.'
+      : 'There are three options: single sharing at ₹15,000 per month, double sharing at ₹10,000 per student per month, and a 2BHK flat for four students at ₹50,000 per month.';
+  }
+  if (has('2bhk', '2 bhk', 'flat', 'four students', '4 students')) {
+    return 'The 2BHK flat is for four students at ₹50,000 per month (₹6,00,000 per year), or ₹12,500 per student per month if split evenly. It has its own living area and kitchen. Electricity, Wi-Fi, water, RO drinking water and 24×7 security are included.';
+  }
+  if (has('double')) {
+    return 'Double sharing is ₹10,000 per student per month. The whole room costs ₹20,000 per month (₹2,40,000 per year). Cleaning, electricity, Wi-Fi, RO drinking water, 24×7 security and the common kitchen are included.';
+  }
+  if (has('single')) {
+    return 'Single sharing is ₹15,000 per month (₹1,80,000 per year). It is a furnished room for one student. Electricity, Wi-Fi, cleaning, RO drinking water, 24×7 security and the common kitchen are included.';
+  }
+  if (has('rent', 'price', 'cost', 'fee', 'charge', 'kiraya', 'kitna', 'how much', 'rate', 'budget')) {
+    return 'Rent: single sharing ₹15,000/month; double sharing ₹10,000 per student/month (₹20,000 per room); 2BHK for four students ₹50,000/month. Tiffin is optional at ₹50,000 per student per year.';
+  }
+  return null;
+}
+
 const hits = new Map(); // best-effort per-instance rate limit; not a global distributed limit
 function limited(ip) {
   const now = Date.now();
@@ -64,9 +102,6 @@ module.exports = async (req, res) => {
     }
   }
 
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return res.status(503).json({ error: 'not configured' });
-
   const incoming = req.body && req.body.messages;
   if (!Array.isArray(incoming) || incoming.length < 1 || incoming.length > 20) {
     return res.status(400).json({ error: 'bad request' });
@@ -95,6 +130,14 @@ module.exports = async (req, res) => {
     res.setHeader('Retry-After', '60');
     return res.status(429).json({ error: 'slow down' });
   }
+
+  // Keep high-impact factual answers deterministic; use Gemini for everything else.
+  const lastUserMessage = msgs[msgs.length - 1].parts[0].text;
+  const fixedAnswer = knownAnswer(lastUserMessage);
+  if (fixedAnswer) return res.status(200).json({ reply: fixedAnswer });
+
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return res.status(503).json({ error: 'not configured' });
 
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 8500);
