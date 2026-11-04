@@ -51,8 +51,8 @@ function knownAnswer(question) {
   }
   if (has('2bhk', '2 bhk', 'flat', 'four students', '4 students')) {
     return hindi
-      ? '2BHK flat 4 students ke liye ₹50,000 per month (₹6,00,000 per year) hai. Evenly split karne par ₹12,500 per student per month hoga. Ismein living area aur kitchen hai; electricity, Wi-Fi, water, RO drinking water aur 24×7 security included hain.'
-      : 'The 2BHK flat is for four students at ₹50,000 per month (₹6,00,000 per year), or ₹12,500 per student per month if split evenly. It has its own living area and kitchen. Electricity, Wi-Fi, water, RO drinking water and 24×7 security are included.';
+      ? '2BHK flat 4 students ke liye ₹50,000 per month (₹6,00,000 per year) hai. Evenly split karne par ₹12,500 per student per month hoga. Ismein living area aur kitchen hai; cleaning, electricity, Wi-Fi, water, RO drinking water aur 24×7 security included hain.'
+      : 'The 2BHK flat is for four students at ₹50,000 per month (₹6,00,000 per year), or ₹12,500 per student per month if split evenly. It has its own living area and kitchen. Cleaning, electricity, Wi-Fi, water, RO drinking water and 24×7 security are included.';
   }
   if (has('double')) {
     return hindi
