@@ -498,12 +498,12 @@ var IMGS={"building": "images/building.jpg", "terrace": "images/terrace.jpg", "b
   function wantsLink(a,q){return /book|visit|available|reserve|99929|front desk|whatsapp/i.test(a+' '+q)}
 
   async function ask(q){if(busy||!q.trim())return;busy=true;send.disabled=true;chips.hidden=true;
-    add('user',q);hist.push({role:'user',content:q});var d=typing(),ans=null;
-    try{var ctl=new AbortController(),to=setTimeout(function(){ctl.abort()},11000);
-      var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist.slice(-8)}),signal:ctl.signal});clearTimeout(to);
-      if(r.ok){var j=await r.json();if(j&&typeof j.reply==='string'&&j.reply.trim())ans=j.reply.trim()}}catch(e){}
+    add('user',q);hist.push({role:'user',content:q});var d=typing(),ans=null,ctl=new AbortController(),to;
+    try{to=setTimeout(function(){ctl.abort()},11000);
+      var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist.slice(-8)}),signal:ctl.signal});
+      if(r.ok){var j=await r.json();if(j&&typeof j.reply==='string'&&j.reply.trim())ans=j.reply.trim()}}catch(e){}finally{if(to)clearTimeout(to)}
     if(!ans)ans=local(q);
-    setTimeout(function(){d.remove();add('bot',ans,wantsLink(ans,q));hist.push({role:'assistant',content:ans});busy=false;send.disabled=false;inp.focus()},350)}
+    setTimeout(function(){d.remove();add('bot',ans,wantsLink(ans,q));hist.push({role:'assistant',content:ans});if(hist.length>8)hist=hist.slice(-8);busy=false;send.disabled=false;inp.focus()},350)}
   form.addEventListener('submit',function(e){e.preventDefault();var q=inp.value;inp.value='';ask(q)});
   [].slice.call(chips.querySelectorAll('button')).forEach(function(b){b.addEventListener('click',function(){ask(b.textContent)})});
 })();
