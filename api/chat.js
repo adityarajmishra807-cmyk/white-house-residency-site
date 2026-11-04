@@ -33,7 +33,7 @@ function limited(ip) {
   arr.push(now);
   hits.set(ip, arr);
   if (hits.size > 5000) hits.clear();
-  return arr.length > 10;
+  return arr.length > 50;
 }
 
 module.exports = async (req, res) => {
