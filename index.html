@@ -408,7 +408,7 @@ footer{background:var(--y);color:var(--k);min-height:90svh;display:flex;flex-dir
 </div>
 
 <script>
-var IMGS={"building": "images/building.webp", "terrace": "images/terrace.webp", "balcony": "images/balcony.jpg", "single": "images/single.jpg", "double": "images/double.jpg", "flat": "images/flat.jpg", "bedroomb": "images/bedroomb.jpg", "wardrobe": "images/wardrobe.jpg", "bathroom": "images/bathroom.jpg", "corridor": "images/corridor.jpg", "kitchen": "images/kitchen.jpg", "foosball": "images/foosball.jpg", "elevator": "images/elevator.jpg", "reception": "images/reception.jpg", "office": "images/office.jpg"};
+var IMGS={"building": "images/building.webp", "terrace": "images/terrace.webp", "balcony": "images/balcony.jpg", "single": "images/single.jpg", "double": "images/double.jpg", "flat": "images/flat.jpg", "bedroomb": "images/bedroomb.jpg", "wardrobe": "images/wardrobe.jpg", "bathroom": "images/bathroom.webp", "corridor": "images/corridor.jpg", "kitchen": "images/kitchen.jpg", "foosball": "images/foosball.jpg", "elevator": "images/elevator.jpg", "reception": "images/reception.jpg", "office": "images/office.jpg"};
 (function(){
   var rm=matchMedia('(prefers-reduced-motion: reduce)').matches,$=function(s,c){return (c||document).querySelector(s)},$$=function(s,c){return [].slice.call((c||document).querySelectorAll(s))},phone=function(){return innerWidth<=760};
   $$('img[data-img]').forEach(function(i){i.src=IMGS[i.dataset.img]});
